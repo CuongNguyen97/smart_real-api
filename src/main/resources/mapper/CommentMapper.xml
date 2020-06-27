@@ -1,0 +1,58 @@
+<?xml version = "1.0" encoding = "UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.smartreal.api.mapper.CommentMapper">
+    <select id="getCommentCount" resultType="_long">
+        SELECT
+            COUNT(id)
+        FROM
+            smart_real.comment
+        WHERE
+            project_id = #{projectId}
+    </select>
+
+    <select id="getCommentList" resultMap="commentListItem">
+        SELECT
+            c.id, c.user_id, c.project_id, c.content, c.date_time,
+            u.username, u.full_name, u.phone, u.email
+        FROM
+            smart_real.comment AS c
+        LEFT JOIN
+            smart_real.user As u ON c.user_id = u.id
+        WHERE
+            c.project_id = #{projectId}
+        LIMIT
+            #{offset}, #{size}
+    </select>
+
+    <select id="getCommentById" resultType="comment">
+        SELECT
+            id, user_id, project_id, content, date_time
+        FROM
+            smart_real.comment
+        WHERE
+            id = #{id}
+    </select>
+
+    <insert id="insertComment" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO
+            smart_real.comment (user_id, project_id, content)
+        VALUES
+            (#{userId}, #{projectId}, #{content})
+    </insert>
+
+    <resultMap id="commentListItem" type="commentListItem">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="project_id" property="projectId"/>
+        <result column="content" property="content"/>
+        <result column="date_time" property="dateTime"/>
+        <association property="user" javaType="user">
+            <id column="user_id" property="id"/>
+            <result column="username" property="username"/>
+            <result column="full_name" property="fullName"/>
+            <result column="phone" property="phone"/>
+            <result column="email" property="email"/>
+        </association>
+    </resultMap>
+</mapper>

@@ -1,0 +1,20 @@
+mybatis:
+  type-aliases-package: com.smartreal.api.model
+  type-handlers-package: com.smartreal.api.handler
+  configuration:
+    map-underscore-to-camel-case: true
+    default-fetch-size: 100
+    default-statement-timeout: 30
+  mapper-locations: classpath:mapper/*.xml
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+    username: root
+    password: 12345678
+
+jwt:
+  secret: MnEz7o2NHT0hW6lR9GotorHmdIgifpbkZ6F3OUL3U4luADA3jhn+jnWfNwB2EDiHJ6NqZnr12p5RMwvklMnvBA==
+logging:
+  level:
+    root: INFO

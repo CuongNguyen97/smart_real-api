@@ -1,0 +1,146 @@
+<?xml version = "1.0" encoding = "UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.smartreal.api.mapper.ProjectMapper">
+    <select id="getListProject" resultMap="projectList">
+        SELECT p.id,
+               p.subject,
+               p.properties,
+               p.long_description,
+               p.price,
+               p.thumbnail_url,
+               p.street, p.ward, p.district, p.province,
+               p.date_time,
+               (SELECT COUNT(user_id) FROM smart_real.user_favorite AS uf WHERE uf.project_id = p.id)                     AS favoriteCount,
+               (SELECT 1 FROM smart_real.user_favorite AS uf WHERE uf.project_id = p.id AND uf.user_id = #{userId}) AS isLiked,
+               pg.id                                                                                                AS pgId,
+               pg.image_url                                                                                         AS pgImageUrl,
+               pg.date_time                                                                                         AS pgDateTime
+        FROM smart_real.project AS p
+                 LEFT JOIN smart_real.project_gallery AS pg ON p.id = pg.project_id
+        WHERE subject LIKE CONCAT('%', #{subject}, '%')
+          AND price >= #{minPrice}
+          AND price <![CDATA[ <= ]]> #{maxPrice}
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="getListFavoriteProject" resultMap="projectList">
+        SELECT p.id,
+               p.subject,
+               p.properties,
+               p.long_description,
+               p.price,
+               p.thumbnail_url,
+               p.street, p.ward, p.district, p.province,
+               p.date_time,
+               (SELECT COUNT(user_id) FROM smart_real.user_favorite AS uf WHERE uf.project_id = p.id)                     AS favoriteCount,
+               pg.id                                                                                                AS pgId,
+               pg.image_url                                                                                         AS pgImageUrl,
+               pg.date_time                                                                                         AS pgDateTime
+        FROM smart_real.project AS p
+                 JOIN smart_real.user_favorite uf ON p.id = uf.project_id
+                 LEFT JOIN smart_real.project_gallery AS pg ON p.id = pg.project_id
+        WHERE
+            uf.user_id = #{userId}
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="getProjectDetail" resultMap="projectDetail">
+        SELECT p.id,
+               p.subject,
+               p.properties,
+               p.long_description,
+               p.price,
+               p.thumbnail_url,
+               p.street, p.ward, p.district, p.province,
+               p.date_time,
+               (SELECT COUNT(user_id) FROM smart_real.user_favorite WHERE pg.project_id = p.id)                     AS favoriteCount,
+               (SELECT 1 FROM smart_real.user_favorite AS uf WHERE uf.project_id = p.id AND uf.user_id = #{userId}) AS isLiked,
+               pg.id                                                                                                AS pgId,
+               pg.image_url                                                                                         AS pgImageUrl,
+               pg.date_time                                                                                         AS pgDateTime,
+               r.id                                                                                                 AS rId,
+               r.subject                                                                                            AS rSubject,
+               r.length                                                                                             AS rLength,
+               r.width                                                                                              AS rWidth,
+               r.image_url                                                                                          AS rImageUrl
+        FROM smart_real.project AS p
+                 LEFT JOIN smart_real.project_gallery AS pg ON p.id = pg.project_id
+                 LEFT JOIN smart_real.room AS r ON p.id = r.project_id
+        WHERE p.id = #{projectId}
+    </select>
+
+    <insert id="insertUserFavorite">
+        INSERT INTO
+            smart_real.user_favorite(user_id, project_id)
+        VALUES
+            (#{userId}, #{projectId})
+    </insert>
+
+    <select id="getUserFavoriteByUserAndProjectId" resultType="userFavorite">
+        SELECT
+            user_id, project_id
+        FROM
+            smart_real.user_favorite
+        WHERE
+            user_id = #{userId} AND project_id = #{projectId}
+    </select>
+
+    <delete id="deleteUserFavorite">
+        DELETE FROM
+            smart_real.user_favorite
+        WHERE
+            user_id = #{userId} AND project_id = #{projectId}
+    </delete>
+
+    <resultMap id="projectList" type="project">
+        <id column="id" property="id"/>
+        <result column="subject" property="subject"/>
+        <result column="properties" property="properties"/>
+        <result column="long_description" property="longDescription"/>
+        <result column="favoriteCount" property="favoriteCount"/>
+        <result column="isLiked" property="isLiked"/>
+        <result column="price" property="price"/>
+        <result column="thumbnail_url" property="thumbnailUrl"/>
+        <result column="street" property="street"/>
+        <result column="ward" property="ward"/>
+        <result column="district" property="district"/>
+        <result column="province" property="province"/>
+        <result column="date_time" property="dateTime"/>
+        <collection property="galleries" ofType="projectGallery">
+            <id column="pgId" property="id"/>
+            <result column="pgImageUrl" property="imageUrl"/>
+            <result column="pgDateTime" property="dateTime"/>
+        </collection>
+    </resultMap>
+
+    <resultMap id="projectDetail" type="project">
+        <id column="id" property="id"/>
+        <result column="subject" property="subject"/>
+        <result column="properties" property="properties"/>
+        <result column="long_description" property="longDescription"/>
+        <result column="favoriteCount" property="favoriteCount"/>
+        <result column="isLiked" property="isLiked"/>
+        <result column="price" property="price"/>
+        <result column="thumbnail_url" property="thumbnailUrl"/>
+        <result column="street" property="street"/>
+        <result column="ward" property="ward"/>
+        <result column="district" property="district"/>
+        <result column="province" property="province"/>
+        <result column="date_time" property="dateTime"/>
+        <collection property="galleries" ofType="projectGallery">
+            <id column="pgId" property="id"/>
+            <result column="id" property="projectId"/>
+            <result column="pgImageUrl" property="imageUrl"/>
+            <result column="pgDateTime" property="dateTime"/>
+        </collection>
+        <collection property="rooms" ofType="room">
+            <id column="rId" property="id"/>
+            <result column="id" property="projectId"/>
+            <result column="rLength" property="length"/>
+            <result column="rSubject" property="subject"/>
+            <result column="rWidth" property="width"/>
+            <result column="rImageUrl" property="imageUrl"/>
+        </collection>
+    </resultMap>
+</mapper>
